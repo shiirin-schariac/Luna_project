@@ -106,6 +106,12 @@ AST_T *visitor_visit(visitor_T *visitor, AST_T *node)
         break;
     }
 
+    case AST_T::AST_VARIABLE_ASSIGNMENT:
+    {
+        return visitor_visit_variable_assignment(visitor, node);
+        break;
+    }
+
     case AST_T::AST_FUNCTION_DEFINITION:
     {
         return visitor_visit_function_definition(visitor, node);
@@ -180,9 +186,9 @@ AST_T *visitor_visit_variable_definition(visitor_T *visitor, AST_T *node)
     //     visitor->variable_definition[visitor->variable_definition_size - 1] = node;
     // }
 
-    scope_add_function_definition(
-        node->scope,
-        node);
+    // scope_add_variable_definition(
+    //     node->scope,
+    //     node);
 
     return node;
 }
@@ -195,7 +201,7 @@ AST_T *visitor_visit_variable(visitor_T *visitor, AST_T *node)
 
     //     if (strcmp(vardef->variable_definition_variable_name, node->variable_name) == 0)
     //     {
-    //         return visitor_visit(visitor, vardef->variable_definition_value);
+    //         return visitor_visit(visitor, vardef->variable_value);
     //     }
     // }
 
@@ -204,7 +210,23 @@ AST_T *visitor_visit_variable(visitor_T *visitor, AST_T *node)
         node->variable_name);
 
     if (vdef != 0)
-        return visitor_visit(visitor, vdef->variable_definition_value);
+        return visitor_visit(visitor, vdef->variable_value);
+
+    printf("Undefined variable %s\n", node->variable_name);
+    return node;
+}
+
+AST_T *visitor_visit_variable_assignment(visitor_T *visitor, AST_T *node)
+{
+    AST_T *vdef = scope_get_variable_definition(
+        node->scope,
+        node->variable_assignment_variable_name);
+
+    if (vdef != 0)
+    {
+        vdef->variable_value = node->variable_assignment_value;
+        return visitor_visit(visitor, vdef->variable_value);
+    }
 
     printf("Undefined variable %s\n", node->variable_name);
     return node;
@@ -212,9 +234,9 @@ AST_T *visitor_visit_variable(visitor_T *visitor, AST_T *node)
 
 AST_T *visitor_visit_function_definition(visitor_T *visitor, AST_T *node)
 {
-    scope_add_function_definition(
-        node->scope,
-        node);
+    // scope_add_function_definition(
+    //     node->scope,
+    //     node);
 
     return node;
 }
@@ -244,7 +266,7 @@ AST_T *visitor_visit_function_call(visitor_T *visitor, AST_T *node)
         exit(1);
     }
 
-    //printf("Now this function has %d args.\n", node->function_call_arguments_size);
+    // printf("Now this function has %d args.\n", node->function_call_arguments_size);
 
     for (int i = 0; i < (int)node->function_call_arguments_size; i++)
     {
@@ -257,7 +279,7 @@ AST_T *visitor_visit_function_call(visitor_T *visitor, AST_T *node)
         // create a new variable definition with the value of the argument
         // in the function call.
         AST_T *ast_vardef = init_ast(AST_T::AST_VARIABLE_DEFINITION);
-        ast_vardef->variable_definition_value = ast_value;
+        ast_vardef->variable_value = ast_value;
 
         // copy the name from the function definition argument into the new
         // variable definition

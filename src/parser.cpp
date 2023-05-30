@@ -213,6 +213,8 @@ AST_T *parser_parse_function_definition(parser_T *parser, scope_T *scope)
 
     function_def->scope = scope;
 
+    scope_add_function_definition(scope, function_def);
+
     return function_def;
 }
 
@@ -224,6 +226,11 @@ AST_T *parser_parse_variable(parser_T *parser, scope_T *scope)
     if (parser->current_token->type == TOKEN_STRUCT::TOKEN_LPAREN)
     {
         return parser_parse_function_call(parser, scope);
+    }
+
+    if (parser->current_token->type == TOKEN_STRUCT::TOKEN_EQUALS)
+    {
+        return parser_parse_variable_assignment(parser, scope);
     }
 
     AST_T *ast_variable = init_ast(AST_T::AST_VARIABLE);
@@ -241,15 +248,32 @@ AST_T *parser_parse_variable_definition(parser_T *parser, scope_T *scope)
     parser_eat(parser, TOKEN_STRUCT::TOKEN_ID);     // var name
     parser_eat(parser, TOKEN_STRUCT::TOKEN_EQUALS); // var name =
     AST_T *variable_definition_value = parser_parse_express(parser, scope);
-    //
 
     AST_T *variable_definition = init_ast(AST_T::AST_VARIABLE_DEFINITION);
     variable_definition->variable_definition_variable_name = variable_definition_variable_name;
-    variable_definition->variable_definition_value = variable_definition_value;
+    variable_definition->variable_value = variable_definition_value;
 
     variable_definition->scope = scope;
 
+    scope_add_variable_definition(scope, variable_definition);
+
     return variable_definition;
+}
+
+AST_T *parser_parse_variable_assignment(parser_T *parser, scope_T *scope)
+{
+    char *variable_assignment_variable_name = parser->prev_token->value;
+
+    parser_eat(parser, TOKEN_STRUCT::TOKEN_EQUALS);
+    AST_T *variable_assignment_value = parser_parse_express(parser, scope);
+
+    AST_T *variable_assignment = init_ast(AST_T::AST_VARIABLE_ASSIGNMENT);
+    variable_assignment->variable_assignment_variable_name = variable_assignment_variable_name;
+    variable_assignment->variable_assignment_value = variable_assignment_value;
+
+    variable_assignment->scope = scope;
+
+    return variable_assignment;
 }
 
 AST_T *parser_parse_string(parser_T *parser, scope_T *scope)
@@ -268,7 +292,6 @@ AST_T *parser_parse_id(parser_T *parser, scope_T *scope)
 {
     if (strcmp(parser->current_token->value, "var") == 0)
     {
-
         return parser_parse_variable_definition(parser, scope);
     }
     else if (strcmp(parser->current_token->value, "function") == 0)

@@ -9,7 +9,6 @@ AST_T *init_ast(int type)
 
     // AST_VARIABLE_DEFINITION
     ast->variable_definition_variable_name = 0;
-    ast->variable_definition_value = 0;
 
     // AST_FUNCTION_DEFINITION
     ast->function_definition_args_size = 0;
@@ -19,6 +18,7 @@ AST_T *init_ast(int type)
 
     // AST_VARIABLE
     ast->variable_name = 0;
+    ast->variable_value = 0;
 
     // AST_FUNC_CALL
     ast->function_call_name = 0;

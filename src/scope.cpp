@@ -16,7 +16,7 @@ scope_T *init_scope()
 AST_T *scope_add_function_definition(scope_T *scope, AST_T *fdef)
 {
     scope->function_definition_size++;
-    
+
     if (scope->function_definition == 0)
     {
         scope->function_definition = new AST_T *[1]();
@@ -32,11 +32,11 @@ AST_T *scope_add_function_definition(scope_T *scope, AST_T *fdef)
     return fdef;
 }
 
-AST_T* scope_get_function_definition(scope_T* scope, const char* fname)
+AST_T *scope_get_function_definition(scope_T *scope, const char *fname)
 {
     for (int i = 0; i < scope->function_definition_size; i++)
     {
-        AST_T* fdef = scope->function_definition[i];
+        AST_T *fdef = scope->function_definition[i];
 
         if (strcmp(fdef->function_definition_name, fname) == 0)
         {
@@ -47,32 +47,31 @@ AST_T* scope_get_function_definition(scope_T* scope, const char* fname)
     return 0;
 }
 
-AST_T* scope_add_variable_definition(scope_T* scope, AST_T* vdef)
+AST_T *scope_add_variable_definition(scope_T *scope, AST_T *vdef)
 {
     if (scope->variable_definition == 0)
     {
-        scope->variable_definition = new AST_T*[1]();
+        scope->variable_definition = new AST_T *[1]();
         scope->variable_definition[0] = vdef;
         scope->variable_definition_size += 1;
     }
     else
     {
         scope->variable_definition_size += 1;
-        scope->variable_definition = (AST_T**)realloc(
+        scope->variable_definition = (AST_T **)realloc(
             scope->variable_definition,
-            scope->variable_definition_size * sizeof(struct AST_T*)  
-        );
-        scope->variable_definition[scope->variable_definition_size-1] = vdef;
+            scope->variable_definition_size * sizeof(struct AST_T *));
+        scope->variable_definition[scope->variable_definition_size - 1] = vdef;
     }
 
     return vdef;
 }
 
-AST_T* scope_get_variable_definition(scope_T* scope, const char* name)
+AST_T *scope_get_variable_definition(scope_T *scope, const char *name)
 {
     for (int i = 0; i < scope->variable_definition_size; i++)
     {
-        AST_T* vdef = scope->variable_definition[i];
+        AST_T *vdef = scope->variable_definition[i];
 
         if (strcmp(vdef->variable_definition_variable_name, name) == 0)
         {

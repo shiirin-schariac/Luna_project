@@ -9,8 +9,12 @@ typedef struct AST_T
     enum ast_type
     {
         AST_VARIABLE_DEFINITION,
+        AST_VARIABLE_ASSIGNMENT,
         AST_FUNCTION_DEFINITION,
         AST_VARIABLE,
+        //AST_TERM,
+        //AST_FACTOR,
+        //AST_EXPR,
         AST_FUNCTION_CALL,
         AST_STRING,
         AST_INTEGER,
@@ -23,7 +27,11 @@ typedef struct AST_T
 
     // AST_VARIABLE_DEFINITION
     char *variable_definition_variable_name;
-    struct AST_T *variable_definition_value;
+    struct AST_T *variable_value;
+
+    // AST_VARIABLE_ASSIGNMENT
+    char *variable_assignment_variable_name;
+    struct AST_T *variable_assignment_value;
 
     // AST_FUNCTION_DEFINITION
     size_t function_definition_args_size;
