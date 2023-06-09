@@ -4,6 +4,7 @@
 #include "lexer.h"
 #include "AST.h"
 #include "./scope.h"
+#include "LR_0.h"
 
 typedef struct PARSER_STRUCT
 {
@@ -22,6 +23,8 @@ AST_T *parser_parse(parser_T *parser, scope_T *scope);
 AST_T *parser_parse_statement(parser_T *parser, scope_T *scope);
 
 AST_T *parser_parse_statements(parser_T *parser, scope_T *scope);
+
+AST_T *parser_update_next_node(parser_T *parser, scope_T *scope);
 
 AST_T *parser_parse_express(parser_T *parser, scope_T *scope);
 

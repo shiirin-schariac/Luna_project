@@ -124,6 +124,12 @@ AST_T *visitor_visit(visitor_T *visitor, AST_T *node)
         break;
     }
 
+    case AST_T::AST_EXPR:
+    {
+        return visitor_visit_expr(visitor, node);
+        break;
+    }
+
     case AST_T::AST_STRING:
     {
         return visitor_visit_string(visitor, node);
@@ -167,44 +173,15 @@ AST_T *visitor_visit(visitor_T *visitor, AST_T *node)
 
 AST_T *visitor_visit_variable_definition(visitor_T *visitor, AST_T *node)
 {
-    // if (visitor->variable_definition == 0)
-    // {
-
-    //     visitor->variable_definition = new AST_T *[1]();
-    //     visitor->variable_definition[0] = node;
-    //     visitor->variable_definition_size++;
-    //     // printf("test_first_defi\n");
-    // }
-    // else
-    // {
-    //     // printf("test_second_defi\n");
-    //     visitor->variable_definition_size++;
-    //     AST_T **temp = new AST_T *[visitor->variable_definition_size]();
-    //     std::copy(visitor->variable_definition, visitor->variable_definition + 1, temp);
-    //     delete[] visitor->variable_definition;
-    //     visitor->variable_definition = temp;
-    //     visitor->variable_definition[visitor->variable_definition_size - 1] = node;
-    // }
-
     // scope_add_variable_definition(
     //     node->scope,
     //     node);
 
-    return node;
+    return visitor_visit_expr(visitor, node->variable_value);
 }
 
 AST_T *visitor_visit_variable(visitor_T *visitor, AST_T *node)
 {
-    // for (int i = 0; i < visitor->variable_definition_size; i++)
-    // {
-    //     AST_T *vardef = visitor->variable_definition[i];
-
-    //     if (strcmp(vardef->variable_definition_variable_name, node->variable_name) == 0)
-    //     {
-    //         return visitor_visit(visitor, vardef->variable_value);
-    //     }
-    // }
-
     AST_T *vdef = scope_get_variable_definition(
         node->scope,
         node->variable_name);
@@ -292,6 +269,139 @@ AST_T *visitor_visit_function_call(visitor_T *visitor, AST_T *node)
 
     return visitor_visit(visitor, fdef->function_definition_body);
 }
+
+AST_T *visitor_visit_expr(visitor_T *visitor, AST_T *node)
+{
+    visitor_visit_calculate(visitor, node->expression_left);
+    node->type = node->expression_left->type;
+
+    if (node->expression_left->type == AST_T::AST_INTEGER)
+    {
+        node->int_value = node->expression_left->int_value;
+    }
+    else if (node->expression_left->type == AST_T::AST_FLOAT)
+    {
+        node->float_value = node->expression_left->float_value;
+    }
+    else
+    {
+        printf("the type of the wrong is %d\n", node->expression_left->type);
+    }
+
+    return node;
+}
+
+void visitor_visit_calculate(visitor_T *visitor, AST_T *node)
+{
+    if (if_node_number(node))
+    {
+        return;
+    }
+    if (node->type == AST_T::AST_VARIABLE)
+    {
+        AST_T *var_node = visitor_visit_variable(visitor, node);
+        node->type = var_node->type;
+        if (node->type == AST_T::AST_INTEGER)
+        {
+            node->int_value = var_node->int_value;
+        }
+        else if (node->type == AST_T::AST_FLOAT)
+        {
+            node->float_value = var_node->float_value;
+        }
+        else
+        {
+            printf("Idk but sm wrong\n");
+        }
+        return;
+    }
+    if (!(if_node_number(node->expression_left) && if_node_number(node->expression_right)))
+    {
+        visitor_visit_calculate(visitor, node->expression_left);
+        visitor_visit_calculate(visitor, node->expression_right);
+    }
+    if (node->expression_left->type == AST_T::AST_INTEGER && node->expression_right->type == AST_T::AST_INTEGER)
+    {
+        switch (node->type)
+        {
+        case AST_T::AST_ADD:
+            node->int_value = node->expression_left->int_value + node->expression_right->int_value;
+            break;
+
+        case AST_T::AST_SUB:
+            node->int_value = node->expression_left->int_value - node->expression_right->int_value;
+            break;
+
+        case AST_T::AST_MUL:
+            node->int_value = node->expression_left->int_value * node->expression_right->int_value;
+            break;
+
+        case AST_T::AST_DIV:
+            node->int_value = node->expression_left->int_value / node->expression_right->int_value;
+            break;
+
+        default:
+            break;
+        }
+        node->type = AST_T::AST_INTEGER;
+        return;
+    }
+    else
+    {
+        switch (node->type)
+        {
+        case AST_T::AST_ADD:
+        {
+            double left = node->expression_left->int_value ? node->expression_left->int_value : node->expression_left->float_value;
+            double right = node->expression_right->int_value ? node->expression_right->int_value : node->expression_right->float_value;
+            node->float_value = left + right;
+            break;
+        }
+
+        case AST_T::AST_SUB:
+        {
+            double left = node->expression_left->int_value ? node->expression_left->int_value : node->expression_left->float_value;
+            double right = node->expression_right->int_value ? node->expression_right->int_value : node->expression_right->float_value;
+            node->float_value = left - right;
+            break;
+        }
+
+        case AST_T::AST_MUL:
+        {
+            double left = node->expression_left->int_value ? node->expression_left->int_value : node->expression_left->float_value;
+            double right = node->expression_right->int_value ? node->expression_right->int_value : node->expression_right->float_value;
+            node->float_value = left * right;
+            break;
+        }
+
+        case AST_T::AST_DIV:
+        {
+            double left = node->expression_left->int_value ? node->expression_left->int_value : node->expression_left->float_value;
+            double right = node->expression_right->int_value ? node->expression_right->int_value : node->expression_right->float_value;
+            node->float_value = left / right;
+            break;
+        }
+
+        default:
+            break;
+        }
+        node->type = AST_T::AST_FLOAT;
+        return;
+    }
+}
+
+bool if_node_number(AST_T *node)
+{
+    return (node->type == AST_T::AST_INTEGER || node->type == AST_T::AST_FLOAT);
+}
+
+// 写一个单独的计算的递归函数calculate(return type:void)
+// if判断是否左右两边都是数字 不是的话就分别递归calculate
+// 如果类型为数字就return
+// int lef = left.num;
+// int righ = right.num;
+// 根据符号进行计算,结果存在当前节点中,并将当前节点type改为int/float,return
+// int与float的类型判断是难点
 
 AST_T *visitor_visit_string(visitor_T *visitor, AST_T *node)
 {

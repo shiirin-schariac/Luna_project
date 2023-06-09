@@ -1,7 +1,5 @@
-expr -> term ADD | SUB term
-term -> factor MULTI | DIV factor
-factor -> variable | int | float | LPAREN expr RPAREN |
+var a = 42;
+a = 10+1-25/5*2;
+var b = a + 41;
 
-var a = (aa+1)*2;
-//function and variable can't have the same name
-goit(aa,1);
+print(a,b);

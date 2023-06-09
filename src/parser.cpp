@@ -1,5 +1,6 @@
 #include "include/parser.h"
 #include "include/scope.h"
+#include "include/LR_0.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -94,35 +95,246 @@ AST_T *parser_parse_statements(parser_T *parser, scope_T *scope)
     return compound;
 }
 
-AST_T *parser_parse_express(parser_T *parser, scope_T *scope)
+AST_T *parser_update_next_node(parser_T *parser, scope_T *scope)
 {
+    AST_T *next_node = 0;
+    // printf("now the token type is %d\n",parser->current_token->type);
+
     switch (parser->current_token->type)
     {
-    case TOKEN_STRUCT::TOKEN_STRING:
-        return parser_parse_string(parser, scope);
-    case TOKEN_STRUCT::TOKEN_ID:
-        return parser_parse_id(parser, scope);
     case TOKEN_STRUCT::TOKEN_INTEGER:
-        return parser_parse_int(parser, scope);
+        next_node = parser_parse_int(parser, scope);
+        next_node->expression_node_type = transfer_token_lr_type(TOKEN_STRUCT::TOKEN_INTEGER);
+        break;
+
     case TOKEN_STRUCT::TOKEN_FLOAT:
-        return parser_parse_float(parser, scope);
+        next_node = parser_parse_float(parser, scope);
+        next_node->expression_node_type = transfer_token_lr_type(TOKEN_STRUCT::TOKEN_FLOAT);
+        break;
+
+    case TOKEN_STRUCT::TOKEN_ID:
+        next_node = parser_parse_variable(parser, scope);
+        next_node->expression_node_type = transfer_token_lr_type(TOKEN_STRUCT::TOKEN_ID);
+        break;
+
+    case TOKEN_STRUCT::TOKEN_SEMI:
+        next_node = init_ast(AST_T::AST_NOOP);
+        next_node->expression_node_type = transfer_token_lr_type(TOKEN_STRUCT::TOKEN_SEMI);
+        break;
+
+    case TOKEN_STRUCT::TOKEN_COMMA:
+        next_node = init_ast(AST_T::AST_NOOP);
+        next_node->expression_node_type = transfer_token_lr_type(TOKEN_STRUCT::TOKEN_COMMA);
+        break;
 
     default:
-    {
-        return init_ast(AST_T::AST_NOOP);
+        next_node = init_ast(AST_T::AST_NOOP);
+        next_node->expression_node_type = transfer_token_lr_type((TOKEN_STRUCT::token_type)parser->current_token->type);
+        parser_eat(parser, (TOKEN_STRUCT::token_type)parser->current_token->type);
         break;
     }
-    }
-    return init_ast(AST_T::AST_NOOP);
+
+    // update the lr type of the next node
+    // parser_eat(parser, parser->current_token->type);
+
+    return next_node;
 }
 
-// AST_T *parser_parse_factor(parser_T *parser, scope_T *scope)
-// {
-// }
+AST_T *parser_parse_express(parser_T *parser, scope_T *scope)
+{
+    if (parser->current_token->type == TOKEN_STRUCT::TOKEN_STRING)
+    {
+        return parser_parse_string(parser, scope);
+    }
 
-// AST_T *parser_parse_term(parser_T *parser, scope_T *scope)
-// {
-// }
+    std::vector<AST_T *> nodes;
+    nodes.push_back(init_ast(AST_T::AST_NOOP));
+    nodes[0]->expression_node_type = LR_0::LR_START;
+    nodes[0]->expression_state = 0;
+
+    int now_type = LR_0::LR_START;
+    int now_state = 0;
+
+    int l_parens = parser->current_token->type == TOKEN_STRUCT::TOKEN_LPAREN ? 1 : 0;
+
+    AST_T *next_token_node = parser_update_next_node(parser, scope);
+    AST_T *next_node = next_token_node;
+
+    while (now_type != LR_0::LR_END)
+    // the condition loop ends
+    {
+        // get the operation from the LR(0) parsing table
+        // printf("now the state is %d\n", now_state);
+        // printf("now the expression node type is %d\n", next_node->expression_node_type);
+        char *operation = search_parsetable(now_state, next_node->expression_node_type);
+        // printf("the next command is %s\n", operation);
+
+        if (operation[0] == 'r')
+        {
+            switch (operation[1] - '0')
+            {
+            case 1:
+            {
+                AST_T *top_node = init_ast(AST_T::AST_EXPR);
+                top_node->expression_node_type = LR_0::LR_END;
+                top_node->expression_left = nodes.back();
+
+                return top_node;
+                // next_node = top_node;
+                // nodes.pop_back(); // end of expression?
+                // now_state = nodes.back()->expression_state;
+                // now_type = nodes.back()->expression_node_type;
+                break;
+            }
+
+            case 2:
+            {
+                AST_T *ast_oprt = init_ast(AST_T::AST_ADD);
+                ast_oprt->expression_node_type = LR_0::LR_EXPR;
+                ast_oprt->expression_right = nodes.back();
+                nodes.pop_back();
+                nodes.pop_back();
+                ast_oprt->expression_left = nodes.back();
+                nodes.pop_back();
+                next_node = ast_oprt;
+                now_type = nodes.back()->expression_node_type;
+                now_state = nodes.back()->expression_state;
+                break;
+            }
+
+            case 3:
+            {
+                AST_T *ast_oprt = init_ast(AST_T::AST_SUB);
+                ast_oprt->expression_node_type = LR_0::LR_EXPR;
+                ast_oprt->expression_right = nodes.back();
+                nodes.pop_back();
+                nodes.pop_back();
+                ast_oprt->expression_left = nodes.back();
+                nodes.pop_back();
+                next_node = ast_oprt;
+                now_type = nodes.back()->expression_node_type;
+                now_state = nodes.back()->expression_state;
+                break;
+            }
+
+            case 4:
+            {
+                next_node = nodes.back();
+                next_node->expression_node_type = LR_0::LR_EXPR;
+                nodes.pop_back();
+                now_type = nodes.back()->expression_node_type;
+                now_state = nodes.back()->expression_state;
+                break;
+            }
+
+            case 5:
+            {
+                AST_T *ast_oprt = init_ast(AST_T::AST_MUL);
+                ast_oprt->expression_node_type = LR_0::LR_TERM;
+                ast_oprt->expression_right = nodes.back();
+                nodes.pop_back();
+                nodes.pop_back();
+                ast_oprt->expression_left = nodes.back();
+                nodes.pop_back();
+                next_node = ast_oprt;
+                now_type = nodes.back()->expression_node_type;
+                now_state = nodes.back()->expression_state;
+                break;
+            }
+
+            case 6:
+            {
+                AST_T *ast_oprt = init_ast(AST_T::AST_DIV);
+                ast_oprt->expression_node_type = LR_0::LR_TERM;
+                ast_oprt->expression_right = nodes.back();
+                nodes.pop_back();
+                nodes.pop_back();
+                ast_oprt->expression_left = nodes.back();
+                nodes.pop_back();
+                next_node = ast_oprt;
+                now_type = nodes.back()->expression_node_type;
+                now_state = nodes.back()->expression_state;
+                break;
+            }
+
+            case 7:
+            {
+                next_node = nodes.back();
+                next_node->expression_node_type = LR_0::LR_TERM;
+                nodes.pop_back();
+                now_type = nodes.back()->expression_node_type;
+                now_state = nodes.back()->expression_state;
+                break;
+            }
+
+            case 8:
+            {
+                next_node = nodes.back();
+                next_node->expression_node_type = LR_0::LR_FACTOR;
+                nodes.pop_back();
+                now_type = nodes.back()->expression_node_type;
+                now_state = nodes.back()->expression_state;
+                break;
+            }
+
+            case 9:
+            {
+                nodes.pop_back();
+                next_node = nodes.back();
+                next_node->expression_node_type = LR_0::LR_FACTOR;
+                nodes.pop_back();
+                nodes.pop_back();
+                now_type = nodes.back()->expression_node_type;
+                now_state = nodes.back()->expression_state;
+                l_parens--;
+                break;
+            }
+
+            default:
+                break;
+            }
+
+            // use the rule of switch return to simplify the node in stack using
+        }
+        else if (operation[0] == 's')
+        {
+            next_node->expression_state = atoi(operation + 1);
+            // printf("now the state is %d\n", next_node->expression_state);
+
+            if (next_node->expression_node_type != LR_0::LR_EXPR && next_node->expression_node_type != LR_0::LR_TERM && next_node->expression_node_type != LR_0::LR_FACTOR)
+            {
+                if (l_parens == 0 && parser->current_token->type == TOKEN_STRUCT::TOKEN_RPAREN)
+                {
+                    next_token_node = init_ast(AST_T::AST_NOOP);
+                    next_token_node->expression_node_type = LR_0::LR_END;
+                }
+                else
+                    next_token_node = parser_update_next_node(parser, scope);
+            }
+
+            nodes.push_back(next_node);
+            now_state = nodes.back()->expression_state;
+            now_type = nodes.back()->expression_node_type;
+
+            next_node = next_token_node;
+            // nodes.push
+            // update the now_type and the next_type
+        }
+        else if (strcmp(operation, "acc") == 0)
+        {
+            break;
+        }
+        else
+        {
+            printf("Error with ???\n");
+            exit(1);
+        }
+    }
+
+    printf("the EXPRESSION is uncompleted\n");
+    exit(1);
+    return next_node;
+}
 
 AST_T *parser_parse_function_call(parser_T *parser, scope_T *scope)
 {
@@ -288,6 +500,7 @@ AST_T *parser_parse_string(parser_T *parser, scope_T *scope)
     return ast_string;
 }
 
+// TODO:determine whether the id is a function has been defined
 AST_T *parser_parse_id(parser_T *parser, scope_T *scope)
 {
     if (strcmp(parser->current_token->value, "var") == 0)

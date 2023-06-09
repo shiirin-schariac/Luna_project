@@ -12,9 +12,11 @@ typedef struct AST_T
         AST_VARIABLE_ASSIGNMENT,
         AST_FUNCTION_DEFINITION,
         AST_VARIABLE,
-        //AST_TERM,
-        //AST_FACTOR,
-        //AST_EXPR,
+        AST_EXPR,
+        AST_ADD,
+        AST_SUB,
+        AST_DIV,
+        AST_MUL,
         AST_FUNCTION_CALL,
         AST_STRING,
         AST_INTEGER,
@@ -23,7 +25,7 @@ typedef struct AST_T
         AST_NOOP,
     } type;
 
-    struct SCOPE_STRUCT* scope;
+    struct SCOPE_STRUCT *scope;
 
     // AST_VARIABLE_DEFINITION
     char *variable_definition_variable_name;
@@ -36,8 +38,8 @@ typedef struct AST_T
     // AST_FUNCTION_DEFINITION
     size_t function_definition_args_size;
     struct AST_T *function_definition_body;
-    char* function_definition_name;
-    struct AST_T** function_definition_args;
+    char *function_definition_name;
+    struct AST_T **function_definition_args;
 
     // AST_VARIABLE
     char *variable_name;
@@ -46,6 +48,12 @@ typedef struct AST_T
     char *function_call_name;
     struct AST_T **function_call_arguments; //**???
     size_t function_call_arguments_size;
+
+    // AST_EXPR
+    struct AST_T *expression_left;
+    struct AST_T *expression_right;
+    int expression_state;
+    int expression_node_type;
 
     // AST_STRING
     char *string_value;

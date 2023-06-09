@@ -5,10 +5,10 @@ flags = -g
 
 
 $(exec): $(objects)
-	g++ $(objects) $(flags) -o $(exec)
+	g++ -std=c++17 $(objects) $(flags) -o $(exec)
 
 %.o: %.cpp include/%.h
-	g++ -c $(flags) $< -o $@
+	g++ -c -std=c++17 $(flags) $< -o $@
 
 install:
 	make

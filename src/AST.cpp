@@ -25,6 +25,12 @@ AST_T *init_ast(int type)
     ast->function_call_arguments = 0;
     ast->function_call_arguments_size = 0;
 
+    // AST_EXPR
+    ast->expression_left = 0;
+    ast->expression_right = 0;
+    ast->expression_state = 0;
+    ast->expression_node_type = 0;
+
     // AST_STRING
     ast->string_value = 0;
 
