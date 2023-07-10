@@ -128,11 +128,6 @@ token_T *lexer_get_next_token(lexer_T *lexer)
             return lexer_advance_with_token(lexer, init_token(TOKEN_STRUCT::TOKEN_DIV, lexer_get_current_char_as_string(lexer)));
             break;
         }
-        case '%':
-        {
-            return lexer_advance_with_token(lexer, init_token(TOKEN_STRUCT::TOKEN_MOD, lexer_get_current_char_as_string(lexer)));
-            break;
-        }
         case '>':
         {
             if (lexer->contents[lexer->i + 1] == '=')
@@ -175,11 +170,6 @@ token_T *lexer_collect_string(lexer_T *lexer)
     while (lexer->c != '"')
     {
         char *s = lexer_get_current_char_as_string(lexer);
-        // char *temp = new char[(strlen(value) + strlen(s) + 1)]();
-        // std::copy(value, value + 1, temp);
-        // delete[] value;
-        // value = temp;
-        // value = realloc(value, (strlen(value) + strlen(s) + 1) * sizeof(char));
         strcat(value, s);
 
         lexer_advance(lexer);
@@ -198,11 +188,6 @@ token_T *lexer_collect_id(lexer_T *lexer)
     while (isalnum(lexer->c))
     {
         char *s = lexer_get_current_char_as_string(lexer);
-        // char *temp = new char[(strlen(value) + strlen(s) + 1)]();
-        // std::copy(value, value + 1, temp);
-        // delete[] value;
-        // value = temp;
-        // value = realloc(value, (strlen(value) + strlen(s) + 1) * sizeof(char));
         strcat(value, s);
 
         lexer_advance(lexer);
@@ -262,9 +247,6 @@ token_T *lexer_collect_number(lexer_T *lexer)
 
     return init_token(TOKEN_STRUCT::TOKEN_INVALID, value);
 }
-
-// TODO:to convert the number token from string into int/float
-// maybe do it in parser
 
 token_T *lexer_advance_with_token(lexer_T *lexer, token_T *token)
 {

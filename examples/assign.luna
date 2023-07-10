@@ -1,0 +1,9 @@
+var a = 35;
+
+function test(){
+    var a = 25;
+    a = 42;
+    print(a);
+};
+test();
+print(a);

@@ -190,6 +190,7 @@ AST_T *visitor_visit_variable(visitor_T *visitor, AST_T *node)
         return visitor_visit(visitor, vdef->variable_value);
 
     printf("Undefined variable %s\n", node->variable_name);
+    exit(1);
     return node;
 }
 
@@ -206,6 +207,7 @@ AST_T *visitor_visit_variable_assignment(visitor_T *visitor, AST_T *node)
     }
 
     printf("Undefined variable %s\n", node->variable_name);
+    exit(1);
     return node;
 }
 
@@ -283,6 +285,10 @@ AST_T *visitor_visit_expr(visitor_T *visitor, AST_T *node)
     {
         node->float_value = node->expression_left->float_value;
     }
+    else if (node->expression_left->type == AST_T::AST_STRING)
+    {
+        node->string_value = node->expression_left->string_value;
+    }
     else
     {
         printf("the type of the wrong is %d\n", node->expression_left->type);
@@ -309,9 +315,13 @@ void visitor_visit_calculate(visitor_T *visitor, AST_T *node)
         {
             node->float_value = var_node->float_value;
         }
+        else if (node->type == AST_T::AST_STRING)
+        {
+            node->string_value = var_node->string_value;
+        }
         else
         {
-            printf("Idk but sm wrong\n");
+            printf("warning with UNSUPPORTED or UNDEFINED variable.\n");
         }
         return;
     }
@@ -341,6 +351,7 @@ void visitor_visit_calculate(visitor_T *visitor, AST_T *node)
             break;
 
         default:
+        //TODO: complement the warning of unknown type of calculation
             break;
         }
         node->type = AST_T::AST_INTEGER;
@@ -383,6 +394,7 @@ void visitor_visit_calculate(visitor_T *visitor, AST_T *node)
         }
 
         default:
+        //TODO: complement the warning of unknown type of calculation
             break;
         }
         node->type = AST_T::AST_FLOAT;
@@ -394,14 +406,6 @@ bool if_node_number(AST_T *node)
 {
     return (node->type == AST_T::AST_INTEGER || node->type == AST_T::AST_FLOAT);
 }
-
-// 写一个单独的计算的递归函数calculate(return type:void)
-// if判断是否左右两边都是数字 不是的话就分别递归calculate
-// 如果类型为数字就return
-// int lef = left.num;
-// int righ = right.num;
-// 根据符号进行计算,结果存在当前节点中,并将当前节点type改为int/float,return
-// int与float的类型判断是难点
 
 AST_T *visitor_visit_string(visitor_T *visitor, AST_T *node)
 {

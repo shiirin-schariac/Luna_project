@@ -46,7 +46,7 @@ typedef struct AST_T
 
     // AST_FUNC_CALL
     char *function_call_name;
-    struct AST_T **function_call_arguments; //**???
+    struct AST_T **function_call_arguments; 
     size_t function_call_arguments_size;
 
     // AST_EXPR

@@ -13,6 +13,7 @@ typedef struct LR_0
         LR_SUB,
         LR_MULTI,
         LR_DIV,
+        LR_MOD,
         LR_LPAREN,
         LR_RPAREN,
         LR_START,

@@ -94,6 +94,10 @@ int transfer_token_lr_type(int token_type)
         return LR_0::LR_END;
         break;
 
+    case TOKEN_STRUCT::TOKEN_EOF:
+        return LR_0::LR_END;
+        break;
+
     default:
         printf("Unknown token in expression with type %d.\n",token_type);
         exit(0);

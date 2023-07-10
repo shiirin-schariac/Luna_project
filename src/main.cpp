@@ -4,6 +4,8 @@
 #include "include/visitor.h"
 #include "include/io.h"
 
+#define MAX_LIMIT 20
+
 void print_help()
 {
     printf("Usage:\nhello.out <filename>");
@@ -12,25 +14,42 @@ void print_help()
 
 int main(int argc, char *argv[])
 {
-    if (argc < 2)
+    if (argc >= 2)
     {
-        print_help();
+        for (int i = 1; i < argc; i++)
+        {
+            int len = strlen(argv[i]);
+            char *last_five = &argv[i][len - 5];
+            if (strcmp(last_five, ".luna") == 0)
+            {
+                lexer_T *lexer = init_lexer(
+                    get_file_contents(argv[i]));
+                parser_T *parser = init_parser(lexer);
+                AST_T *root = parser_parse(parser, parser->scope);
+                visitor_T *visitor = init_visitor();
+                visitor_visit(visitor, root);
+            }
+
+            else
+            {
+                print_help();
+            }
+        }
     }
-    lexer_T *lexer = init_lexer(get_file_contents(argv[1]));
-
-    // token_T *token = lexer_get_next_token(lexer);
-    // printf("TOKEN(%d,%s)\n", token->type, token->value);
-
-    // while ((token = lexer_get_next_token(lexer))->type != TOKEN_STRUCT::TOKEN_EOF)
-    // {
-    //     printf("TOKEN(%d,%s)\n", token->type, token->value);
-    // }
-
-    parser_T *parser = init_parser(lexer);
-    AST_T *root = parser_parse(parser, parser->scope);
-    visitor_T *visitor = init_visitor();
-    //printf("the compound is %d\n",root->compound_size);
-    visitor_visit(visitor, root);
+    else
+    {
+        char input[MAX_LIMIT];
+        while (1)
+        {
+            printf("Welcome to the Luna language v. 1.2.1!\n>>> ");
+            fgets(input, MAX_LIMIT, stdin);
+            lexer_T *lexer = init_lexer(input);
+            parser_T *parser = init_parser(lexer);
+            AST_T *root = parser_parse(parser, parser->scope);
+            visitor_T *visitor = init_visitor();
+            visitor_visit(visitor, root);
+        }
+    }
 
     return 0;
 }

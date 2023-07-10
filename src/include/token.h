@@ -18,7 +18,6 @@ typedef struct TOKEN_STRUCT
         TOKEN_SUB,
         TOKEN_MULTIPIE,
         TOKEN_DIV,
-        TOKEN_MOD,
         TOKEN_LARGER,
         TOKEN_LESS,
         TOKEN_EQUAL,

@@ -26,11 +26,17 @@ void parser_eat(parser_T *parser, int token_type)
         parser->prev_token = parser->current_token;
         parser->current_token = lexer_get_next_token(parser->lexer);
     }
+    else if (parser->current_token->type == TOKEN_STRUCT::TOKEN_EOF)
+    {
+        return;
+    }
     else
     {
         printf("Unexpected token %s , with type %d", parser->current_token->value, parser->current_token->type);
         exit(1);
     }
+
+    return;
 }
 
 AST_T *parser_parse(parser_T *parser, scope_T *scope)
@@ -44,7 +50,6 @@ AST_T *parser_parse_statement(parser_T *parser, scope_T *scope)
     {
     case TOKEN_STRUCT::TOKEN_ID:
     {
-        // printf("%s\n", parser->current_token->value);
         return parser_parse_id(parser, scope);
     }
     case TOKEN_STRUCT::TOKEN_EOF:
@@ -75,7 +80,6 @@ AST_T *parser_parse_statements(parser_T *parser, scope_T *scope)
 
     while (parser->current_token->type == TOKEN_STRUCT::TOKEN_SEMI)
     {
-        // printf("%s\n",parser->current_token->value);
         parser_eat(parser, TOKEN_STRUCT::TOKEN_SEMI);
 
         AST_T *ast_statement = parser_parse_statement(parser, scope);
@@ -89,6 +93,12 @@ AST_T *parser_parse_statements(parser_T *parser, scope_T *scope)
             // realloc memory
 
             compound->compound_value[compound->compound_size - 1] = ast_statement;
+        }
+        
+        if(parser->current_token->type != TOKEN_STRUCT::TOKEN_SEMI&&parser->current_token->type == TOKEN_STRUCT::TOKEN_ID)
+        {
+            printf("Missing semi!\n");
+            exit(1);
         }
     }
 
@@ -164,10 +174,7 @@ AST_T *parser_parse_express(parser_T *parser, scope_T *scope)
     // the condition loop ends
     {
         // get the operation from the LR(0) parsing table
-        // printf("now the state is %d\n", now_state);
-        // printf("now the expression node type is %d\n", next_node->expression_node_type);
         char *operation = search_parsetable(now_state, next_node->expression_node_type);
-        // printf("the next command is %s\n", operation);
 
         if (operation[0] == 'r')
         {
@@ -180,10 +187,6 @@ AST_T *parser_parse_express(parser_T *parser, scope_T *scope)
                 top_node->expression_left = nodes.back();
 
                 return top_node;
-                // next_node = top_node;
-                // nodes.pop_back(); // end of expression?
-                // now_state = nodes.back()->expression_state;
-                // now_type = nodes.back()->expression_node_type;
                 break;
             }
 
@@ -419,13 +422,15 @@ AST_T *parser_parse_function_definition(parser_T *parser, scope_T *scope)
 
     parser_eat(parser, TOKEN_STRUCT::TOKEN_LBRACE);
 
-    function_def->function_definition_body = parser_parse_statements(parser, scope);
+    scope_T *new_scope = init_scope();
+
+    function_def->function_definition_body = parser_parse_statements(parser, new_scope);
 
     parser_eat(parser, TOKEN_STRUCT::TOKEN_RBRACE);
 
-    function_def->scope = scope;
-
     scope_add_function_definition(scope, function_def);
+
+    function_def->scope = scope;
 
     return function_def;
 }
@@ -465,9 +470,9 @@ AST_T *parser_parse_variable_definition(parser_T *parser, scope_T *scope)
     variable_definition->variable_definition_variable_name = variable_definition_variable_name;
     variable_definition->variable_value = variable_definition_value;
 
-    variable_definition->scope = scope;
-
     scope_add_variable_definition(scope, variable_definition);
+
+    variable_definition->scope = scope;
 
     return variable_definition;
 }
@@ -500,7 +505,6 @@ AST_T *parser_parse_string(parser_T *parser, scope_T *scope)
     return ast_string;
 }
 
-// TODO:determine whether the id is a function has been defined
 AST_T *parser_parse_id(parser_T *parser, scope_T *scope)
 {
     if (strcmp(parser->current_token->value, "var") == 0)
@@ -533,7 +537,6 @@ AST_T *parser_parse_float(parser_T *parser, scope_T *scope)
 {
     AST_T *ast_float = init_ast(AST_T::AST_FLOAT);
     std::istringstream(parser->current_token->value) >> ast_float->float_value;
-    printf("%f\n", ast_float->float_value);
 
     parser_eat(parser, TOKEN_STRUCT::TOKEN_FLOAT);
 
