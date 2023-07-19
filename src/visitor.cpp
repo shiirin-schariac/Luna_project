@@ -351,7 +351,8 @@ void visitor_visit_calculate(visitor_T *visitor, AST_T *node)
             break;
 
         default:
-        //TODO: complement the warning of unknown type of calculation
+            printf("The operation type is UNSUPPORTED.\n");
+            exit(1);
             break;
         }
         node->type = AST_T::AST_INTEGER;
@@ -394,7 +395,8 @@ void visitor_visit_calculate(visitor_T *visitor, AST_T *node)
         }
 
         default:
-        //TODO: complement the warning of unknown type of calculation
+            printf("The operation type is UNSUPPORTED.\n");
+            exit(1);
             break;
         }
         node->type = AST_T::AST_FLOAT;

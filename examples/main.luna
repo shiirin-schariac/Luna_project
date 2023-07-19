@@ -1,14 +1,4 @@
-function say(x, y)
-{
-    print(x);
-    print(y);
-};
+var a = 10;
 
-say(42, "Luna");
+print(a);
 
-function doit()
-{
-    print("tsuki ga kirei da.");
-};
-
-doit();
