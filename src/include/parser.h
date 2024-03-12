@@ -42,6 +42,8 @@ AST_T *parser_parse_variable_definition(parser_T *parser, scope_T *scope);
 
 AST_T *parser_parse_variable_assignment(parser_T *parser, scope_T *scope);
 
+AST_T *parser_parse_if_compound(parser_T *parser, scope_T *scope);
+
 AST_T *parser_parse_string(parser_T *parser, scope_T *scope);
 
 AST_T *parser_parse_id(parser_T *parser, scope_T *scope);

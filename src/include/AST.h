@@ -18,6 +18,7 @@ typedef struct AST_T
         AST_DIV,
         AST_MUL,
         AST_FUNCTION_CALL,
+        AST_IF,
         AST_STRING,
         AST_INTEGER,
         AST_FLOAT,

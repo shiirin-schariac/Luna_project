@@ -105,6 +105,26 @@ AST_T *parser_parse_statements(parser_T *parser, scope_T *scope)
     return compound;
 }
 
+AST_T *parser_parse_id(parser_T *parser, scope_T *scope)
+{
+    if (strcmp(parser->current_token->value, "var") == 0)
+    {
+        return parser_parse_variable_definition(parser, scope);
+    }
+    else if (strcmp(parser->current_token->value, "function") == 0)
+    {
+        return parser_parse_function_definition(parser, scope);
+    }
+    else if (strcmp(parser->current_token->value, "if") == 0)
+    {
+        return parser_parse_if_compound(parser, scope);
+    }
+    else
+    {
+        return parser_parse_variable(parser, scope);
+    }
+}
+
 AST_T *parser_update_next_node(parser_T *parser, scope_T *scope)
 {
     AST_T *next_node = 0;
@@ -498,6 +518,24 @@ AST_T *parser_parse_variable_assignment(parser_T *parser, scope_T *scope)
     return variable_assignment;
 }
 
+// TODO: If compound analyze
+// AST_T *parser_parse_if_compound(parser_T *parser, scope_T *scope) {
+//     parser_eat(parser, TOKEN_STRUCT::TOKEN_ID);
+//     parser_eat(parser, TOKEN_STRUCT::TOKEN_LPAREN);
+    
+//     AST_T *if_left_value = parser_parse_express(parser, scope);
+//     if (parser->current_token->type == TOKEN_STRUCT::TOKEN_EQUALS 
+//         || parser->current_token->type == TOKEN_STRUCT::TOKEN_LARGEEQUAL 
+//         || parser->current_token->type == TOKEN_STRUCT::TOKEN_LARGER 
+//         || parser->current_token->type == TOKEN_STRUCT::TOKEN_LESSEQUAL 
+//         || parser->current_token->type == TOKEN_STRUCT::TOKEN_LESS
+//         )
+//     {
+//         parser_eat(parser, parser->current_token->type);
+//         AST_T *if_right_value = parser_parse_express(parser, scope);
+//     }
+// }
+
 AST_T *parser_parse_string(parser_T *parser, scope_T *scope)
 {
     AST_T *ast_string = init_ast(AST_T::AST_STRING);
@@ -508,22 +546,6 @@ AST_T *parser_parse_string(parser_T *parser, scope_T *scope)
     ast_string->scope = scope;
 
     return ast_string;
-}
-
-AST_T *parser_parse_id(parser_T *parser, scope_T *scope)
-{
-    if (strcmp(parser->current_token->value, "var") == 0)
-    {
-        return parser_parse_variable_definition(parser, scope);
-    }
-    else if (strcmp(parser->current_token->value, "function") == 0)
-    {
-        return parser_parse_function_definition(parser, scope);
-    }
-    else
-    {
-        return parser_parse_variable(parser, scope);
-    }
 }
 
 AST_T *parser_parse_int(parser_T *parser, scope_T *scope)
