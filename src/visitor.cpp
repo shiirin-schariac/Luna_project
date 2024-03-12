@@ -189,7 +189,7 @@ AST_T *visitor_visit_variable(visitor_T *visitor, AST_T *node)
     if (vdef != 0)
         return visitor_visit(visitor, vdef->variable_value);
 
-    printf("Undefined variable %s\n", node->variable_name);
+    printf("Used an undefined variable %s\n", node->variable_name);
     exit(1);
     return node;
 }
@@ -202,11 +202,11 @@ AST_T *visitor_visit_variable_assignment(visitor_T *visitor, AST_T *node)
 
     if (vdef != 0)
     {
-        vdef->variable_value = node->variable_assignment_value;
-        return visitor_visit(visitor, vdef->variable_value);
+        vdef->variable_value = visitor_visit(visitor, node->variable_assignment_value);
+        return node;
     }
 
-    printf("Undefined variable %s\n", node->variable_name);
+    printf("Assigned value to an undefined variable %s\n", node->variable_name);
     exit(1);
     return node;
 }

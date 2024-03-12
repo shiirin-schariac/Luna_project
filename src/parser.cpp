@@ -171,11 +171,13 @@ AST_T *parser_parse_express(parser_T *parser, scope_T *scope)
     AST_T *next_node = next_token_node;
 
     while (now_type != LR_0::LR_END)
-    // the condition loop ends
+    // the condition loop ends until the type of expression's last node s END
     {
         // get the operation from the LR(0) parsing table
         char *operation = search_parsetable(now_state, next_node->expression_node_type);
 
+        // LR0 rule: s means to change the state of the expression and push the node into the stack
+        // r means to do some simplification of the expression
         if (operation[0] == 'r')
         {
             switch (operation[1] - '0')
@@ -307,11 +309,14 @@ AST_T *parser_parse_express(parser_T *parser, scope_T *scope)
             if (next_node->expression_node_type != LR_0::LR_EXPR && next_node->expression_node_type != LR_0::LR_TERM && next_node->expression_node_type != LR_0::LR_FACTOR)
             {
                 if (l_parens == 0 && parser->current_token->type == TOKEN_STRUCT::TOKEN_RPAREN)
+                // if there is no lparen to be matched and we detect a rparen
+                // it means the expression is over
                 {
                     next_token_node = init_ast(AST_T::AST_NOOP);
                     next_token_node->expression_node_type = LR_0::LR_END;
                 }
                 else
+                // we have to analyze the next node
                     next_token_node = parser_update_next_node(parser, scope);
             }
 
